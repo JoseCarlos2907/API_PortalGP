@@ -31,7 +31,7 @@ class EscuderiasController extends AbstractController
         return $this->json($escuderiasJSON);
     }
 
-    #[Route('/{id}', name: 'escuderias_get_id', methods:['GET'])]
+    #[Route('/escuderia/{id}', name: 'escuderias_get_id', methods:['GET'])]
     public function getEscuderiaById($id, EscuderiasRepository $escuderiasRepository): Response
     {
         $escuderia = $escuderiasRepository->find($id);
@@ -88,5 +88,27 @@ class EscuderiasController extends AbstractController
             'cuartaImagen'=>$coche["CuartaImg"],
         ];
         return $this->json($cocheJSON);
+    }
+
+    #[Route('/datos-clasificacion-oficial', name: 'escuderias_get_clas_oficial', methods:['GET'])]
+    public function getDatosEscuderiasClasificacionOficial(Connection $connection): Response
+    {
+        $escuderias = $connection->fetchAllAssociative("SELECT E.idEscuderia AS idEscuderia, E.imgLogo AS imgLogo, E.Nombre AS nombre, E.Puntuacion AS puntosTotales, P.CountryCode AS paisCC FROM Escuderias E JOIN Paises P ON P.idPais = E.idPais");
+        if(!$escuderias)
+            return $this->json("No hay registros");
+        
+        $escuderiasJSON = [];
+
+        foreach ($escuderias as $escuderia) {
+            $escuderiasJSON[] = [
+                'idEscuderia'=>$escuderia["idEscuderia"],
+                'imgLogo'=>$escuderia["imgLogo"],
+                'nombre'=>$escuderia["nombre"],
+                'puntosTotales'=>$escuderia["puntosTotales"],
+                'paisCC'=>$escuderia["paisCC"],
+            ];
+        }
+
+        return $this->json($escuderiasJSON);
     }
 }
