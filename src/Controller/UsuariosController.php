@@ -90,20 +90,16 @@ class UsuariosController extends AbstractController
         if(!$seguidores)
             return $this->json("Este usuario no tiene seguidores");
         
+        $nSeguidores = $connection->fetchAllAssociative("SELECT COUNT(idUsuario1) FROM Usuarios_Siguen_Usuarios USU WHERE USU.idUsuario2 = $id");
+        if(!$nSeguidores) $nSeguidores = 0;
+        
         $seguidoresJSON = [];
         
         foreach ($seguidores as $key => $usuario) {
             $seguidoresJSON[] = [
                 'idUsuario'=>$usuario["idUsuario"],
-                'imgPerfil'=>$usuario["ImgPerfil"],
-                'nombre'=>$usuario["Nombre"],
-                'apellidos'=>$usuario["Apellidos"],
-                'fechaNac'=>$usuario["FechaNac"],
                 'nombreUsuario'=>$usuario["NombreUsuario"],
-                'correo'=>$usuario["Correo"],
-                'verificado'=>$usuario["verificado"],
-                'rol'=>$usuario["Rol"],
-                'temaSeleccionado'=>$usuario["TemaSeleccionado"]
+                'numComentarios' => $nSeguidores
             ];
         }
         return $this->json($seguidoresJSON);
@@ -112,24 +108,20 @@ class UsuariosController extends AbstractController
     #[Route('/{id}/seguidos', name: 'usuarios_get_seguidos', methods:['GET'])]
     public function getSeguidosUsuario($id, Connection $connection): Response
     {
-        $seguidos = $connection->fetchAllAssociative("SELECT * FROM Usuarios_Siguen_Usuarios USU JOIN Usuarios U ON USU.idUsuario1 = U.idUsuario WHERE USU.idUsuario1 = $id");
+        $seguidos = $connection->fetchAllAssociative("SELECT * FROM Usuarios_Siguen_Usuarios USU JOIN Usuarios U ON USU.idUsuario2 = U.idUsuario WHERE USU.idUsuario1 = $id");
         if(!$seguidos)
-            return $this->json("Este usuario no sigue a nadie");
+            return $this->json("Este usuario no tiene seguidos");
+        
+        $nSeguidos = $connection->fetchAllAssociative("SELECT COUNT(idUsuario2) FROM Usuarios_Siguen_Usuarios USU WHERE USU.idUsuario1 = $id");
+        if(!$nSeguidos) $nSeguidos = 0;
         
         $seguidosJSON = [];
         
-        foreach ($seguidos as $key => $usuario) {
+        foreach ($seguidos as $key => $seguido) {
             $seguidosJSON[] = [
-                'idUsuario'=>$usuario["idUsuario"],
-                'imgPerfil'=>$usuario["ImgPerfil"],
-                'nombre'=>$usuario["Nombre"],
-                'apellidos'=>$usuario["Apellidos"],
-                'fechaNac'=>$usuario["FechaNac"],
-                'nombreUsuario'=>$usuario["NombreUsuario"],
-                'correo'=>$usuario["Correo"],
-                'verificado'=>$usuario["verificado"],
-                'rol'=>$usuario["Rol"],
-                'temaSeleccionado'=>$usuario["TemaSeleccionado"]
+                'idUsuario'=>$seguido["idUsuario"],
+                'nombreUsuario'=>$seguido["NombreUsuario"],
+                'numComentarios' => $nSeguidos
             ];
         }
         return $this->json($seguidosJSON);
@@ -164,7 +156,7 @@ class UsuariosController extends AbstractController
     #[Route('/{id}/comentarios', name: 'usuarios_get_comentarios', methods:['GET'])]
     public function getComentariosUsuario($id, Connection $connection): Response
     {
-        $comentarios = $connection->fetchAllAssociative("SELECT * FROM Comentarios_Usuarios_Pilotos_Carreras WHERE idUsuario = $id");
+        $comentarios = $connection->fetchAllAssociative("SELECT COM.idUsuario AS idUsuario, COM.idPiloto AS idPiloto, COM.idCarrera AS idCarrera, COM.Comentario AS Comentario, U.Nombre AS nombreUsuario, P.Nombre AS nombrePiloto, PA.Nombre AS nombrePais FROM Comentarios_Usuarios_Pilotos_Carreras COM JOIN Usuarios U ON COM.idUsuario = U.idUsuario JOIN Pilotos P ON COM.idPiloto = P.idPiloto JOIN Carreras C ON COM.idCarrera = C.idCarrera JOIN Circuitos Cir ON Cir.idCircuito = C.idCircuito JOIN Paises PA ON Cir.idPais = PA.idPais WHERE U.idUsuario = $id");
         if(!$comentarios)
             return $this->json("Este usuario no ha hecho ningún comentario");
         
@@ -173,8 +165,11 @@ class UsuariosController extends AbstractController
         foreach ($comentarios as $comentario) {
             $comentariosJSON[] = [
                 'idCarrera'=>$comentario["idCarrera"],
+                'nombrePais'=>$comentario["nombrePais"],
                 'idUsuario'=>$comentario["idUsuario"],
+                'nombreUsuario'=>$comentario["nombreUsuario"],
                 'idPiloto'=>$comentario["idPiloto"],
+                'nombrePiloto'=>$comentario["nombrePiloto"],
                 'comentario'=>$comentario["Comentario"]
             ];
         }

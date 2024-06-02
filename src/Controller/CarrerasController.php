@@ -32,7 +32,7 @@ class CarrerasController extends AbstractController
         return $this->json($carrerasJSON);
     }
 
-    #[Route('/{id}', name: 'carreras_get_id', methods:['GET'])]
+    #[Route('/carrera/{id}', name: 'carreras_get_id', methods:['GET'])]
     public function getCarreraById($id, CarrerasRepository $carrerasRepository): Response
     {
         $carrera = $carrerasRepository->find($id);
@@ -120,5 +120,22 @@ class CarrerasController extends AbstractController
         ];
 
         return $this->json($circuitoJSON);
+    }
+
+    #[Route('/fechas', name: 'carreras_get_fechas', methods:['GET'])]
+    public function getAllFechas(Connection $connection): Response
+    {
+        $fechas= $connection->fetchAllAssociative("SELECT Fecha FROM Carreras");
+        if(!$fechas)
+        return $this->json("No hay carreras registradas");
+    
+        $fechasJSON = [];
+
+        foreach ($fechas as $fecha) {
+            $fechasJSON[] = $fecha["Fecha"];
+        }
+
+
+        return $this->json($fechasJSON);
     }
 }
