@@ -90,7 +90,7 @@ class UsuariosController extends AbstractController
         if(!$seguidores)
             return $this->json("Este usuario no tiene seguidores");
         
-        $nSeguidores = $connection->fetchAllAssociative("SELECT COUNT(idUsuario1) FROM Usuarios_Siguen_Usuarios USU WHERE USU.idUsuario2 = $id");
+        $nSeguidores = $connection->fetchAllAssociative("SELECT COUNT(Comentario) AS numComentarios FROM Comentarios_Usuarios_Pilotos_Carreras WHERE idUsuario = $id");
         if(!$nSeguidores) $nSeguidores = 0;
         
         $seguidoresJSON = [];
@@ -99,7 +99,7 @@ class UsuariosController extends AbstractController
             $seguidoresJSON[] = [
                 'idUsuario'=>$usuario["idUsuario"],
                 'nombreUsuario'=>$usuario["NombreUsuario"],
-                'numComentarios' => $nSeguidores
+                'numComentarios' => count($nSeguidores)
             ];
         }
         return $this->json($seguidoresJSON);
@@ -112,7 +112,7 @@ class UsuariosController extends AbstractController
         if(!$seguidos)
             return $this->json("Este usuario no tiene seguidos");
         
-        $nSeguidos = $connection->fetchAllAssociative("SELECT COUNT(idUsuario2) FROM Usuarios_Siguen_Usuarios USU WHERE USU.idUsuario1 = $id");
+        $nSeguidos = $connection->fetchAllAssociative("SELECT COUNT(Comentario) AS numComentarios FROM Comentarios_Usuarios_Pilotos_Carreras WHERE idUsuario = $id");
         if(!$nSeguidos) $nSeguidos = 0;
         
         $seguidosJSON = [];
@@ -121,7 +121,7 @@ class UsuariosController extends AbstractController
             $seguidosJSON[] = [
                 'idUsuario'=>$seguido["idUsuario"],
                 'nombreUsuario'=>$seguido["NombreUsuario"],
-                'numComentarios' => $nSeguidos
+                'numComentarios' => count($nSeguidos)
             ];
         }
         return $this->json($seguidosJSON);
@@ -156,7 +156,7 @@ class UsuariosController extends AbstractController
     #[Route('/{id}/comentarios', name: 'usuarios_get_comentarios', methods:['GET'])]
     public function getComentariosUsuario($id, Connection $connection): Response
     {
-        $comentarios = $connection->fetchAllAssociative("SELECT COM.idUsuario AS idUsuario, COM.idPiloto AS idPiloto, COM.idCarrera AS idCarrera, COM.Comentario AS Comentario, U.Nombre AS nombreUsuario, P.Nombre AS nombrePiloto, PA.Nombre AS nombrePais FROM Comentarios_Usuarios_Pilotos_Carreras COM JOIN Usuarios U ON COM.idUsuario = U.idUsuario JOIN Pilotos P ON COM.idPiloto = P.idPiloto JOIN Carreras C ON COM.idCarrera = C.idCarrera JOIN Circuitos Cir ON Cir.idCircuito = C.idCircuito JOIN Paises PA ON Cir.idPais = PA.idPais WHERE U.idUsuario = $id");
+        $comentarios = $connection->fetchAllAssociative("SELECT COM.idUsuario AS idUsuario, COM.idPiloto AS idPiloto, COM.idCarrera AS idCarrera, COM.Comentario AS Comentario, U.NombreUsuario AS nombreUsuario, CONCAT(P.Nombre, ' ', P.Apellido) AS nombrePiloto, PA.Nombre AS nombrePais FROM Comentarios_Usuarios_Pilotos_Carreras COM JOIN Usuarios U ON COM.idUsuario = U.idUsuario JOIN Pilotos P ON COM.idPiloto = P.idPiloto JOIN Carreras C ON COM.idCarrera = C.idCarrera JOIN Circuitos Cir ON Cir.idCircuito = C.idCircuito JOIN Paises PA ON Cir.idPais = PA.idPais WHERE U.idUsuario = $id");
         if(!$comentarios)
             return $this->json("Este usuario no ha hecho ningún comentario");
         
