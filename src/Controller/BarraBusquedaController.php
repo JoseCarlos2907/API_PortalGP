@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class BarraBusquedaController extends AbstractController
 {
     #[Route('/', name: 'buscar_post_cadena', methods:['POST'])]
-    public function hashAMano(Request $request, Connection $connection): Response
+    public function busqueda(Request $request, Connection $connection): Response
     {
         $body = $request->getContent();
         $data = json_decode($body, true);
