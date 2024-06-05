@@ -111,4 +111,28 @@ class EscuderiasController extends AbstractController
 
         return $this->json($escuderiasJSON);
     }
+
+
+    #[Route('/{id}/datos-perfil', name: 'escuderias_get_datos_perfil', methods:['GET'])]
+    public function getDatosPerfilEscuderia($id, Connection $connection): Response
+    {
+        $datosEscuderia = $connection->fetchAllAssociative("SELECT E.Nombre AS nombre,E.imgLogo,E.imgEscuderia,E.Descripcion AS descripcion,C.ImgPrincipal AS imgPrincipal,C.SegundaImg AS segundaImg,C.TerceraImg AS terceraImg,C.CuartaImg AS cuartaImg FROM Escuderias E JOIN Coches C ON C.idEscuderia = E.idEscuderia WHERE E.idEscuderia = $id")[0];
+        if(!$datosEscuderia)
+            return $this->json("No existe la escuderia");
+        
+        $datosJSON = [];
+
+        $datosJSON = [
+            'nombre'=>$datosEscuderia["nombre"],
+            'imgLogo'=>$datosEscuderia["imgLogo"],
+            'imgEscuderia'=>$datosEscuderia["imgEscuderia"],
+            'descripcion'=>$datosEscuderia["descripcion"],
+            'imgPrincipal'=>$datosEscuderia["imgPrincipal"],
+            'segundaImg'=>$datosEscuderia["segundaImg"],
+            'terceraImg'=>$datosEscuderia["terceraImg"],
+            'cuartaImg'=>$datosEscuderia["cuartaImg"],
+        ];
+
+        return $this->json($datosJSON);
+    }
 }
