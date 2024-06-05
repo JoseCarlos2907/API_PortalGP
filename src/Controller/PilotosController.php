@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\PilotosRepository;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -246,4 +247,92 @@ class PilotosController extends AbstractController
 
         return $this->json($puntuaciones);
     }
+
+
+    #[Route('/{id}/datos-perfil', name: 'pilotos_get_datos_perfil', methods:['GET'])]
+    public function getDatosPerfilPiloto($id, Connection $connection): Response
+    {
+        $datosBasicoPiloto = $connection->fetchAllAssociative("SELECT P.ImgPerfil AS imgPerfil, C.ImgPrincipal AS imgCoche, CONCAT(P.Nombre, ' ', P.Apellido) AS nombreCompleto, P.FechaNac AS fechaNac, P.Altura AS altura, P.Peso AS peso, P.Numero AS numero, E.Nombre AS nombreEscuderia FROM Pilotos P JOIN Coches C ON C.idCoche = P.idCoche JOIN Escuderias E ON E.idEscuderia = (SELECT idEscuderia FROM Coches C WHERE C.idCoche = P.idCoche) WHERE P.idPiloto = $id")[0];
+        if(!$datosBasicoPiloto)
+            return $this->json("Este piloto no existe");
+        
+        $datosPiloto["datosBasicos"] = [
+            'imgPerfil'=>$datosBasicoPiloto["imgPerfil"],
+            'imgCoche'=>$datosBasicoPiloto["imgCoche"],
+            'nombreCompleto'=>$datosBasicoPiloto["nombreCompleto"],
+            'fechaNac'=>$datosBasicoPiloto["fechaNac"],
+            'altura'=>intval($datosBasicoPiloto["altura"])/100,
+            'peso'=>$datosBasicoPiloto["peso"],
+            'numero'=>$datosBasicoPiloto["numero"],
+            'nombreEscuderia'=>$datosBasicoPiloto["nombreEscuderia"],
+        ];
+
+        
+        $ultimosTiemposPiloto = $connection->fetchAllAssociative("SELECT  'Carrera' AS tipo, PCC.idPiloto, C.fecha, C.HoraInicio, NULL AS numeroLibre, CONCAT(C.fecha, ' ', C.HoraInicio) AS fecha_hora, PCC.TiempoTotalEnCarrera AS tiempo, P.nombre AS nombre_pais FROM  Pilotos_Corren_Carreras PCC JOIN  Carreras C ON PCC.idCarrera = C.idCarrera JOIN  Circuitos CI ON C.idCircuito = CI.idCircuito JOIN  Paises P ON CI.idPais = P.idPais WHERE  PCC.idPiloto = 0 UNION ALL SELECT 'Libres' AS tipo,PCL.idPiloto,L.fecha,L.HoraInicio,L.NumeroLibre AS numeroLibre,CONCAT(L.fecha, ' ', L.HoraInicio) AS fecha_hora,PCL.TiempoVueltaMasRapida AS tiempo, P.nombre AS nombre_pais FROM  Pilotos_Corren_Libres PCL JOIN  Libres L ON PCL.idLibre = L.idLibre JOIN  Carreras C ON L.idCarrera = C.idCarrera JOIN  Circuitos CI ON C.idCircuito = CI.idCircuito JOIN  Paises P ON CI.idPais = P.idPais WHERE  PCL.idPiloto = 0 UNION ALL SELECT 'Clasificacion' AS tipo,PCCL.idPiloto,CL.fecha,CL.HoraInicio,NULL AS numeroLibre,CONCAT(CL.fecha, ' ', CL.HoraInicio) AS fecha_hora,PCCL.TiempoVueltaMasRapida AS tiempo,P.nombre AS nombre_pais FROM  Pilotos_Corren_Clasificacion PCCL JOIN  Clasificaciones CL ON PCCL.idClasificacion = CL.idClasificacion JOIN  Carreras C ON CL.idCarrera = C.idCarrera JOIN  Circuitos CI ON C.idCircuito = CI.idCircuito JOIN  Paises P ON CI.idPais = P.idPais WHERE  PCCL.idPiloto = 0 ORDER BY  STR_TO_DATE(fecha_hora, '%d-%m-%Y %H:%i:%s') DESC LIMIT 3");
+        if(!$ultimosTiemposPiloto)
+            return $this->json("Este piloto aun no ha saltado a la pista");
+    
+        $ultimosTiempos = [];
+        foreach ($ultimosTiemposPiloto as $tiempo) {
+            $ultimosTiempos[] = [
+                "tipo" => $tiempo["tipo"],
+                "numeroLibre" => $tiempo["numeroLibre"],
+                "tiempo" => $tiempo["tiempo"],
+                "nombrePais" => $tiempo["nombre_pais"],
+            ];
+        }
+    
+        $datosPiloto["ultimosTiempos"] = $ultimosTiempos;
+
+
+        $ultimasPosicionesPiloto = $connection->fetchAllAssociative("SELECT  'Carrera' AS tipo, PCC.idPiloto, C.fecha, C.HoraInicio, NULL AS numeroLibre, CONCAT(C.fecha, ' ', C.HoraInicio) AS fecha_hora, PCC.PosicionFinal AS ultima_posicion, P.nombre AS nombre_pais FROM  Pilotos_Corren_Carreras PCC JOIN  Carreras C ON PCC.idCarrera = C.idCarrera JOIN  Circuitos CI ON C.idCircuito = CI.idCircuito JOIN  Paises P ON CI.idPais = P.idPais WHERE  PCC.idPiloto = $id UNION ALL SELECT  'Libres' AS tipo, PCL.idPiloto, L.fecha, L.HoraInicio, L.NumeroLibre AS numeroLibre, CONCAT(L.fecha, ' ', L.HoraInicio) AS fecha_hora, PCL.PosicionFinal AS ultima_posicion, P.nombre AS nombre_pais FROM  Pilotos_Corren_Libres PCL JOIN  Libres L ON PCL.idLibre = L.idLibre JOIN  Carreras C ON L.idCarrera = C.idCarrera JOIN  Circuitos CI ON C.idCircuito = CI.idCircuito JOIN  Paises P ON CI.idPais = P.idPais WHERE  PCL.idPiloto = $id UNION ALL SELECT  'Clasificacion' AS tipo, PCCL.idPiloto, CL.fecha, CL.HoraInicio, NULL AS numeroLibre, CONCAT(CL.fecha, ' ', CL.HoraInicio) AS fecha_hora, PCCL.PosicionFinal AS ultima_posicion, P.nombre AS nombre_pais FROM  Pilotos_Corren_Clasificacion PCCL JOIN  Clasificaciones CL ON PCCL.idClasificacion = CL.idClasificacion JOIN  Carreras C ON CL.idCarrera = C.idCarrera JOIN  Circuitos CI ON C.idCircuito = CI.idCircuito JOIN  Paises P ON CI.idPais = P.idPais WHERE  PCCL.idPiloto = $id ORDER BY  STR_TO_DATE(fecha_hora, '%d-%m-%Y %H:%i:%s') DESC LIMIT 3");
+        if(!$ultimasPosicionesPiloto)
+            return $this->json("Este piloto aun no ha saltado a la pista");
+
+        $ultimasPosiciones = [];
+        foreach ($ultimasPosicionesPiloto as $tiempo) {
+            $ultimasPosiciones[] = [
+                "tipo" => $tiempo["tipo"],
+                "numeroLibre" => $tiempo["numeroLibre"],
+                "posicion" => $tiempo["ultima_posicion"],
+                "nombrePais" => $tiempo["nombre_pais"],
+            ];
+        }
+
+        $datosPiloto["ultimasPosiciones"] = $ultimasPosiciones;
+
+
+        return $this->json($datosPiloto);
+    }
+
+    #[Route('/seguir', name: 'pilotos_post_seguir', methods:['POST'])]
+    public function seguirUsuario(Request $request, Connection $connection): Response
+    {
+        $body = $request->getContent();
+        $data = json_decode($body, true);
+
+        $idSeguidor = $data["idSeguidor"];
+        $idPiloto = $data["idPiloto"];
+
+        $prep = $connection->prepare("INSERT INTO Usuarios_Siguen_Pilotos (idUsuario, idPiloto) VALUES ($idSeguidor, $idPiloto)");
+        $prep->execute();
+
+        return $this->json(["msg" => "Solicitud de seguimiento aceptada"]);
+    }
+
+    #[Route('/no-seguir', name: 'pilotos_post_no_seguir', methods:['POST'])]
+    public function dejarDeSeguirUsuario(Request $request, Connection $connection): Response
+    {
+        $body = $request->getContent();
+        $data = json_decode($body, true);
+
+        $idSeguidor = $data["idSeguidor"];
+        $idPiloto = $data["idPiloto"];
+
+        $prep = $connection->prepare("DELETE FROM Usuarios_Siguen_Pilotos WHERE idUsuario = $idSeguidor AND idPiloto = $idPiloto");
+        $prep->execute();
+
+        return $this->json(["msg" => "Solicitud de cancelar seguimiento aceptada"]);
+    }
+
 }
