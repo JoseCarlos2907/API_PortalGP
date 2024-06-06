@@ -138,4 +138,30 @@ class CarrerasController extends AbstractController
 
         return $this->json($fechasJSON);
     }
+
+    #[Route('/lista-carreras', name: 'carreras_get_lista_carreras', methods:['GET'])]
+    public function getListaCarreras(Connection $connection): Response
+    {
+        $carreras= $connection->fetchAllAssociative("SELECT C.idCarrera AS id, Ci.ImgSiluetaCircuito AS imgSiluetaCircuito, P.Nombre AS nombrePais, C.Fecha AS fecha, C.HoraInicio AS horaInicio, C.Estado AS estado FROM Carreras C  JOIN Circuitos Ci ON Ci.idCircuito = C.idCircuito JOIN Paises P ON P.idPais = Ci.idPais;");
+        if(!$carreras)
+            return $this->json("No hay carreras registradas");
+    
+        $carrerasJSON = [];
+
+        foreach ($carreras as $carrera) {
+            $carrerasJSON[] = [
+                "id"=>$carrera["id"],
+                "imgSiluetaCircuito"=>$carrera["imgSiluetaCircuito"],
+                "nombrePais"=>$carrera["nombrePais"],
+                "fecha"=>$carrera["fecha"],
+                "fechaCadena"=>"",
+                "horaInicio"=>$carrera["horaInicio"],
+                "estado"=>$carrera["estado"],
+                "clase"=>"",
+            ];
+        }
+
+
+        return $this->json($carrerasJSON);
+    }
 }

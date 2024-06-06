@@ -242,7 +242,7 @@ class PilotosController extends AbstractController
                     $puntuacion = 0;
                     break;
             }
-            $puntuaciones[] = $puntuacion;
+            array_push($puntuaciones, $puntuacion);
         }
 
         return $this->json($puntuaciones);
