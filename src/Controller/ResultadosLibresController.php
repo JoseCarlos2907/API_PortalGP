@@ -67,7 +67,7 @@ class ResultadosLibresController extends AbstractController
 
         foreach($libres AS $libre){
             $num = intval($libre["numero"]);
-            $resultados = $connection->fetchAllAssociative("SELECT PCL.PosicionFinal AS posicion, P.Nombre AS nombrePiloto, P.Apellido AS apellidoPiloto, PCL.TiempoVueltaMasRapida AS tiempo FROM Pilotos_Corren_Libres PCL JOIN Pilotos P ON P.idPiloto = PCL.idPiloto JOIN Libres L ON L.idLibre = PCL.idLibre JOIN Carreras C ON C.idCarrera = L.idCarrera WHERE C.idCarrera = $idCarrera AND L.NumeroLibre = $num AND PCL.PosicionFinal != 0 AND PCL.TiempoVueltaMasRapida != '+0 vueltas' ORDER BY STR_TO_DATE(PCL.TiempoVueltaMasRapida, '%i:%s:%f') LIMIT 3");
+            $resultados = $connection->fetchAllAssociative("SELECT PCL.PosicionFinal AS posicion, P.Nombre AS nombrePiloto, P.Apellido AS apellidoPiloto, PCL.TiempoVueltaMasRapida AS tiempo FROM Pilotos_Corren_Libres PCL JOIN Pilotos P ON P.idPiloto = PCL.idPiloto JOIN Libres L ON L.idLibre = PCL.idLibre JOIN Carreras C ON C.idCarrera = L.idCarrera WHERE C.idCarrera = $idCarrera AND L.NumeroLibre = $num AND PCL.PosicionFinal != 0 AND PCL.TiempoVueltaMasRapida != '+0 vueltas' AND PCL.TiempoVueltaMasRapida != 'DNF' ORDER BY STR_TO_DATE(PCL.TiempoVueltaMasRapida, '%i:%s:%f') LIMIT 3");
             if(!$resultados){
                 $resultadosCarrerasJSON[] = [
                     "tipo"=>$libre["tipo"],

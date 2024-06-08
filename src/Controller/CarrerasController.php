@@ -164,4 +164,28 @@ class CarrerasController extends AbstractController
 
         return $this->json($carrerasJSON);
     }
+
+
+    #[Route('/{id}/comentar', name: 'carreras_post_comentar', methods:['POST'])]
+    public function comentarCarrera($id, Request $request, Connection $connection): Response
+    {
+        $body = $request->getContent();
+        $data = json_decode($body, true);
+
+        $idUsuario = $data["idUsuario"];
+        $idCarrera = $data["idCarrera"];
+
+        $existeComentario = $connection->fetchAllAssociative("SELECT * FROM Comentarios_Usuarios_Pilotos_Carreras WHERE idUsuario = $idUsuario AND idCarrera = $idCarrera ");
+        if(!$existeComentario){
+
+            $comentario = $data["comentario"];
+            $idPiloto = $data["idPiloto"];
+
+            $prep = $connection->prepare("INSERT INTO Comentarios_Usuarios_Pilotos_Carreras(idPiloto, idCarrera, idUsuario, Comentario) VALUES($idPiloto, $idCarrera, $idUsuario, '$comentario')");
+            $prep->execute();
+            return $this->json("Comentario publicado");
+        }else{
+            return $this->json("El usuario ya ha comentado en esta carrera");
+        }
+    }
 }
