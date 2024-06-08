@@ -158,7 +158,7 @@ class UsuariosController extends AbstractController
     #[Route('/{id}/comentarios', name: 'usuarios_get_comentarios', methods:['GET'])]
     public function getComentariosUsuario($id, Connection $connection): Response
     {
-        $comentarios = $connection->fetchAllAssociative("SELECT COM.idUsuario AS idUsuario, COM.idPiloto AS idPiloto, COM.idCarrera AS idCarrera, COM.Comentario AS Comentario, U.NombreUsuario AS nombreUsuario, CONCAT(P.Nombre, ' ', P.Apellido) AS nombrePiloto, PA.Nombre AS nombrePais, U.ImgPerfil FROM Comentarios_Usuarios_Pilotos_Carreras COM JOIN Usuarios U ON COM.idUsuario = U.idUsuario JOIN Pilotos P ON COM.idPiloto = P.idPiloto JOIN Carreras C ON COM.idCarrera = C.idCarrera JOIN Circuitos Cir ON Cir.idCircuito = C.idCircuito JOIN Paises PA ON Cir.idPais = PA.idPais WHERE U.idUsuario = $id");
+        $comentarios = $connection->fetchAllAssociative("SELECT COM.idUsuario AS idUsuario, COM.idPiloto AS idPiloto, COM.idCarrera AS idCarrera, COM.Comentario AS Comentario, U.NombreUsuario AS nombreUsuario, CONCAT(P.Nombre, ' ', P.Apellido) AS nombrePiloto, PA.Nombre AS nombrePais, U.ImgPerfil AS imgPerfilUsuario, P.ImgPerfil AS imgPerfilPiloto FROM Comentarios_Usuarios_Pilotos_Carreras COM JOIN Usuarios U ON COM.idUsuario = U.idUsuario JOIN Pilotos P ON COM.idPiloto = P.idPiloto JOIN Carreras C ON COM.idCarrera = C.idCarrera JOIN Circuitos Cir ON Cir.idCircuito = C.idCircuito JOIN Paises PA ON Cir.idPais = PA.idPais WHERE U.idUsuario = $id");
         if(!$comentarios)
             return $this->json("Este usuario no ha hecho ningún comentario");
         
@@ -173,7 +173,8 @@ class UsuariosController extends AbstractController
                 'idPiloto'=>$comentario["idPiloto"],
                 'nombrePiloto'=>$comentario["nombrePiloto"],
                 'comentario'=>$comentario["Comentario"],
-                'imgPerfil'=>$comentario["ImgPerfil"]
+                'imgPerfilUsuario'=>$comentario["imgPerfilUsuario"],
+                'imgPerfilPiloto'=>$comentario["imgPerfilPiloto"]
             ];
         }
 
