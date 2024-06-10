@@ -55,7 +55,7 @@ class CarrerasController extends AbstractController
     {
         $comentarios = $connection->fetchAllAssociative("SELECT COM.idUsuario AS idUsuario, COM.idPiloto AS idPiloto, COM.idCarrera AS idCarrera, COM.Comentario AS Comentario, U.NombreUsuario AS nombreUsuario, U.ImgPerfil AS imgPerfilUsuario, CONCAT(P.Nombre, ' ', P.Apellido) AS nombrePiloto, P.ImgPerfil AS imgPerfilPiloto, PA.Nombre AS nombrePais FROM Comentarios_Usuarios_Pilotos_Carreras COM JOIN Usuarios U ON COM.idUsuario = U.idUsuario JOIN Pilotos P ON COM.idPiloto = P.idPiloto JOIN Carreras C ON COM.idCarrera = C.idCarrera JOIN Circuitos Cir ON Cir.idCircuito = C.idCircuito JOIN Paises PA ON Cir.idPais = PA.idPais WHERE COM.idCarrera = $id");
         if(!$comentarios)
-            return $this->json("Este usuario no ha hecho ningún comentario");
+            return $this->json("Esta carrera no tiene comentarios");
         
         $comentariosJSON = [];
 
