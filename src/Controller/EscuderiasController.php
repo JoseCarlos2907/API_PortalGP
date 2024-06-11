@@ -93,7 +93,7 @@ class EscuderiasController extends AbstractController
     #[Route('/datos-clasificacion-oficial', name: 'escuderias_get_clas_oficial', methods:['GET'])]
     public function getDatosEscuderiasClasificacionOficial(Connection $connection): Response
     {
-        $escuderias = $connection->fetchAllAssociative("SELECT E.idEscuderia AS idEscuderia, E.imgLogo AS imgLogo, E.Nombre AS nombre, E.Puntuacion AS puntosTotales, P.CountryCode AS paisCC FROM Escuderias E JOIN Paises P ON P.idPais = E.idPais");
+        $escuderias = $connection->fetchAllAssociative("SELECT E.idEscuderia AS idEscuderia, E.imgLogo AS imgLogo, E.Nombre AS nombre, E.Puntuacion AS puntosTotales, P.CountryCode AS paisCC, PA.Nombre AS nombrePais FROM Escuderias E JOIN Paises P ON P.idPais = E.idPais");
         if(!$escuderias)
             return $this->json("No hay registros");
         
@@ -106,6 +106,7 @@ class EscuderiasController extends AbstractController
                 'nombre'=>$escuderia["nombre"],
                 'puntosTotales'=>$escuderia["puntosTotales"],
                 'paisCC'=>$escuderia["paisCC"],
+                'nombrePais'=>$escuderia["nombrePais"],
             ];
         }
 

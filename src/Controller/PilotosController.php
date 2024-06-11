@@ -149,7 +149,7 @@ class PilotosController extends AbstractController
     #[Route('/datos-clasificacion-oficial', name: 'pilotos_get_datos_clas_glob', methods:['GET'])]
     public function getDatosClasificacion(Connection $connection): Response
     {
-        $pilotos = $connection->fetchAllAssociative("SELECT P.idPiloto AS idPiloto, P.Nombre AS nombre, P.Apellido AS apellido, P.ImgPerfil AS imgPerfil, P.Puntuacion AS puntosTotales, E.Nombre AS nombreEscuderia, PA.CountryCode AS paisCC FROM  Pilotos P JOIN  Coches C ON P.idCoche = C.idCoche JOIN  Escuderias E ON C.idEscuderia = E.idEscuderia JOIN  Paises PA ON P.idPais = PA.idPais ORDER BY puntosTotales DESC");
+        $pilotos = $connection->fetchAllAssociative("SELECT P.idPiloto AS idPiloto, P.Nombre AS nombre, P.Apellido AS apellido, P.ImgPerfil AS imgPerfil, P.Puntuacion AS puntosTotales, E.Nombre AS nombreEscuderia, PA.CountryCode AS paisCC, PA.Nombre AS nombrePais FROM  Pilotos P JOIN  Coches C ON P.idCoche = C.idCoche JOIN  Escuderias E ON C.idEscuderia = E.idEscuderia JOIN  Paises PA ON P.idPais = PA.idPais ORDER BY puntosTotales DESC");
 
         if(!$pilotos)
             return $this->json("No hay registros");
@@ -165,6 +165,7 @@ class PilotosController extends AbstractController
                 'puntosTotales'=>$piloto["puntosTotales"],
                 'nombreEscuderia'=>$piloto["nombreEscuderia"],
                 'paisCC'=>$piloto["paisCC"],
+                'nombrePais'=>$piloto["nombrePais"],
             ];
         }
 
