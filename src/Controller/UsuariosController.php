@@ -132,7 +132,7 @@ class UsuariosController extends AbstractController
     #[Route('/{id}/pilotos-seguidos', name: 'usuarios_get_pilotos_seguidos', methods:['GET'])]
     public function getPilotosSeguidosUsuario($id, Connection $connection): Response
     {
-        $pilotosSeguidos = $connection->fetchAllAssociative("SELECT * FROM Usuarios_Siguen_Pilotos USU JOIN Pilotos P ON P.idPiloto = USU.idUsuario WHERE USU.idUsuario = $id");
+        $pilotosSeguidos = $connection->fetchAllAssociative("SELECT * FROM Usuarios_Siguen_Pilotos USU JOIN Pilotos P ON P.idPiloto = USU.idPiloto WHERE USU.idUsuario = $id");
         if(!$pilotosSeguidos)
             return $this->json("Usuario no encontrado");
         
